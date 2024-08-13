@@ -14,14 +14,14 @@ using namespace starspace;
 
 // Read each sentence / document line by line,
 // and output it's embedding vector
-void embedDoc(StarSpace& sp, istream& fin) {
+void embedDoc(StarSpace& sp, istream& fin, ostream& fo) {
   string input;
   while (getline(fin, input)) {
-    if (input.size() ==0) break;
-    cout << input << endl;
+    // if (input.size() ==0) break;
+    // cout << input << endl;
     auto vec = sp.getDocVector(input);
-    vec.forEachCell([&](Real r) { cout << r << ' '; });
-    cout << endl;
+    vec.forEachCell([&](Real r) { fo << r << '\t'; });
+    fo << endl;
   }
 }
 
@@ -46,16 +46,23 @@ int main(int argc, char** argv) {
 
   if (argc > 2) {
     std::string filename(argv[2]);
+    std::string outfile(argv[3]);
+    
+    // ifstream fout(out_filename);
     ifstream fin(filename);
+    ofstream fo(outfile);
+    
     if (!fin.is_open()) {
       std::cerr << "file cannot be opened for loading!" << std::endl;
       exit(EXIT_FAILURE);
     }
-    embedDoc(sp, fin);
+
+    embedDoc(sp, fin, fo);
     fin.close();
+    fo.close();
   } else {
-    cout << "Input your sentence / document now:\n";
-    embedDoc(sp, cin);
+    // cout << "Input your sentence / document now:\n";
+    // embedDoc(sp, cin, cin);
   }
 
   return 0;
