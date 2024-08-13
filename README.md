@@ -17,13 +17,6 @@ It learns to rank a set of entities/documents or objects given a query entity/do
 
 See the [paper](https://arxiv.org/abs/1709.03856) for more details on how it works.
 
-# News
-- <img width="5%" src="examples/new2.gif"> StarSpace is available in Python: check out the <a href="https://github.com/facebookresearch/StarSpace#building-starspace">Building StarSpace</a> section for details. 
-- <img width="5%" src="examples/new2.gif"> Support reading from compressed file: check out the <a href="https://github.com/facebookresearch/StarSpace/#compressed-file">Compressed File</a> section for more details.
-- <img width="5%" src="examples/new2.gif"> New license and patents: now StarSpace is under MIT license. Checkout <a href="https://github.com/facebookresearch/StarSpace/blob/master/LICENSE.md">LICENSE</a> for details.
-- StarSpace training is much faster now with mini batch training (setting batch size by "-batchSize" argument). Details in [#190](https://github.com/facebookresearch/StarSpace/pull/190).
-- We added support for real-valued input and label weights: checkout the <a href="https://github.com/facebookresearch/StarSpace/#file-format">File Format</a> and <a href="https://github.com/facebookresearch/StarSpace/#imagespace-learning-image-and-label-embeddings">ImageSpace</a> section for more details on how to use weights in input and label.
-
 # Requirements
 
 StarSpace builds on modern Mac OS, Windows, and Linux distributions. Since it uses C++11 features, it requires a compiler with good C++11 support. These include :
@@ -44,14 +37,9 @@ Optional: if one wishes to run the unit tests in src directory, <a href=https://
 
 In order to build StarSpace on Mac OS or Linux, use the following:
 
-    git clone https://github.com/facebookresearch/Starspace.git
+    git clone https://github.com/gaarangoa/StarSpace.git
     cd Starspace
     make
-
-In order to build StarSpace on Windows, open the following in Visual Studio:
-
-    MVS\StarSpace.sln
-In order to build StarSpace python wrapper, please refer <a href="https://github.com/facebookresearch/StarSpace/tree/master/python">README</a> inside the directory <a href="https://github.com/facebookresearch/StarSpace/tree/master/python">python</a>.
 
 # File Format
 
@@ -88,27 +76,6 @@ e.g.,
     dog:0.1 cat:0.5 ...
     
 The default weight is 1 for any word / label that does not contain weights. 
-
-# Compressed File
-
-StarSpace can also read from compressed file (currently only support gzip files). You can skip this part if you do not plan to use compressed input files. To run StarSpace with compressed input, first compile StarSpace using makefile_compress instead of makefile:
-
-    make -f makefile_compress
-
-Then in the train config, specify
-    
-    ./starspace -trainFile input -compressFile gzip -numGzFile 10 ...
-    
-It assumes that there are input files with names 
-
-    input00.gz, input01.gz, ..., input09.gz 
-    
-and reads from those files.
-
-To prepare data in this format, one can use the standard 'split' function to first split input file into multiple chunks, then compress them. For instance:
-
-    split -d -l xxx original_input.txt input && gzip input*
-
 
 ## Training Mode
 
@@ -180,11 +147,6 @@ At training time, at each step for each example (user), one random page is selec
 
     $./starspace train -trainFile input.txt -model pagespace -label 'page' -trainMode 1
 
-### Example scripts:
-To provide an example script, we choose the Last.FM (http://www.lastfm.com)
- dataset from <a href="https://grouplens.org/datasets/hetrec-2011/">HectRec 2011</a> and model it similarly as in the PageSpace setting: user is represented by the bag-of-artitsts listened by the user. 
- 
-     $bash examples/recomm_user_artists.sh
 
 ## DocSpace document recommendation
 
@@ -193,7 +155,7 @@ To provide an example script, we choose the Last.FM (http://www.lastfm.com)
 **Model:** Each document is represented by a bag-of-words of the document. Each user is represented as a (bag of) the documents that they liked/clicked in the past. 
 At training time, at each step one random document is selected as the label and the rest of the bag of documents are selected as input. 
 
-![user-doc](https://github.com/facebookresearch/Starspace/blob/master/examples/user-doc.png)
+![user-doc](https://github.com/gaarangoa/Starspace/blob/master/examples/user-doc.png)
 
 
 **Input file format:**
@@ -209,74 +171,19 @@ So the first user likes sports, and the second is interested in pets in this cas
     ./starspace train -trainFile input.txt -model docspace -trainMode 1 -fileFormat labelDoc
     
     
-## GraphSpace: Link Prediction in Knowledge Bases ##
-
-**Setting:** Learning the mapping between entities and relations in <a href="http://www.freebase.com">Freebase</a>. In freebase, data comes in the format 
-
-    (head_entity, relation_type, tail_entity)
-
-Performing link prediction can be formalized as filling in incomplete triples like 
-
-    (head_entity, relation_type, ?) or (?, relation_type, tail_entity)
-
-**Model:** We learn the embeddings of all entities and relation types. For each relation_type, we learn two embeddings: one for predicting tail_entity given head_entity, one for predicting head_entity given tail_entity.
-
-![multi-rel](https://github.com/facebookresearch/StarSpace/blob/master/examples/multi-relations.png)
-
-### Example scripts:
-<a href="https://github.com/facebookresearch/Starspace/blob/master/examples/multi_relation_example.sh">This example script</a> downloads the Freebase15k data from <a href="https://everest.hds.utc.fr/doku.php?id=en:transe">here</a> and runs the StarSpace model on it:
-
-    $bash examples/multi_relation_example.sh
-   
-    
 ## SentenceSpace: Learning Sentence Embeddings
 
 **Setting:** Learning the mapping between sentences. Given the embedding of one sentence, one can find semantically similar/relevant sentences.
 
 **Model:** Each example is a collection of sentences which are semantically related. Two are picked at random using trainMode 3: one as the input and one as the label, other sentences are picked as random negatives. One easy way to obtain semantically related sentences without labeling is to consider all sentences in the same document are related, and then train on those documents.
 
-![sentences](https://github.com/facebookresearch/StarSpace/blob/master/examples/sentences.png)
-
-### Example scripts:
-<a href="https://github.com/facebookresearch/Starspace/blob/master/examples/wikipedia_sentence_matching.sh">This example script</a> downloads data where each example is a set of sentences from the same Wikipedia page and runs the StarSpace model on it:
-
-    $bash examples/wikipedia_sentence_matching.sh
-    
-To run the full experiment on Wikipedia Sentence Matching presented in [this paper](https://arxiv.org/abs/1709.03856), 
-use <a href="https://github.com/facebookresearch/Starspace/blob/master/examples/wikipedia_sentence_matching_full.sh">this script</a> (warning: it takes a long time to download data and train the model):
-
-    $bash examples/wikipedia_sentence_matching_full.sh
-    
+![sentences](https://github.com/gaarangoa/StarSpace/blob/master/examples/sentences.png)
     
 ## ArticleSpace: Learning Sentence and Article Embeddings
 
 **Setting:** Learning the mapping between sentences and articles. Given the embedding of one sentence, one can find the most relevant articles.
 
 **Model:** Each example is an article which contains multiple sentences. At training time, one sentence is picked at random as the input, the remaining sentences in the article becomes the label, other articles are picked as random negatives (trainMode 2).
-
-### Example scripts:
-<a href="https://github.com/facebookresearch/Starspace/blob/master/examples/wikipedia_article_search.sh">This example script</a> downloads data where each example is a Wikipedia article and runs the StarSpace model on it:
-
-    $bash examples/wikipedia_article_search.sh
-    
-To run the full experiment on Wikipedia Article Search presented in [this paper](https://arxiv.org/abs/1709.03856), 
-use <a href="https://github.com/facebookresearch/Starspace/blob/master/examples/wikipedia_article_search_full.sh">this script</a> (warning: it takes a long time to download data and train the model):
-
-    $bash examples/wikipedia_article_search_full.sh
-    
-## ImageSpace: Learning Image and Label Embeddings
-
-With the most recent update, StarSpace can also be used to learn joint embeddings with images and other entities. For instance, one can use ResNet features (the last layer of a pre-trained ResNet model) to represent an image, and embed images with other entities (words, hashtags, etc.). Just like other entities in Starspace, images can be either on the input or the label side, depending on your task.
-
-Here we give an example using <a href="https://www.cs.toronto.edu/~kriz/cifar.html">CIFAR-10</a> to illustrate how we train images with other entities (in this example, image class): we train a <a href="https://github.com/facebookresearch/ResNeXt">ResNeXt</a> model on CIFAR-10  which achieves 96.34% accuracy on test dataset, and use the last layer of ResNeXt as the features for each image. We embed 10 image classes together with image features in the same space using StarSpace. For an example image from class 1 with last layer (0.8, 0.5, ..., 1.2), we convert it to the following format:
-    
-    d0:0.8  d1:0.5   ...    d1023:1.2   __label__1
-
-After converting train and test examples of CIFAR-10 to the above format, we ran <a href="https://github.com/facebookresearch/StarSpace/blob/master/examples/image_feature_example_cifar10.sh">this example script</a>:
-
-    $bash examples/image_feature_example_cifar10.sh
-
-and achieved 96.40% accuracy on an average of 5 runs.
 
 # Full Documentation of Parameters
     
@@ -345,39 +252,6 @@ Note: We use the same implementation of word n-grams for words as in <a href="ht
 
 
 ## Utility Functions
-
-We also provide a few utility functions for StarSpace:
-### Show Predictions for Queries
-
-A simple way to check the quality of a trained embedding model is to inspect the predictions when typing in an input. To build and use this utility function, run the following commands:
-
-    make query_predict
-    ./query_predict <model> k [basedocs]
-    
-where "\<model\>" specifies a trained StarSpace model and the optional K specifies how many of the top predictions to show (top ranked first). "basedocs" points to the file of documents to rank, see also the argument of the same name in the starspace main above. If "basedocs" is not provided, the labels in the dictionary are used instead.
-
-After loading the model, it reads a line of entities (can be either a single word or a sentence / document), and outputs the predictions.
-
-### Nearest Neighbor Queries
-
-Another simple way to check the quality of a trained embedding model is to inspect nearest neighbors of entities. To build and use this utility function, run the following commands:
-
-    make query_nn
-    ./query_nn <model> [k]
-    
-where "\<model\>" specifies a trained StarSpace model and the optional K (default value is 5) specifies how many nearest neighbors to search for.
-
-After loading the model, it reads a line of entities (can be either a single word or a sentence / document), and output the nearest entities in embedding space.
-
-### Print Ngrams
-
-As the ngrams used in the model are not saved in tsv format, we also provide a separate function to output n-grams embeddings from the model. To use that, run the following commands:
-
-    make print_ngrams
-    ./print_ngrams <model>
-    
-where "\<model\>" specifies a trained StarSpace model with argument -ngrams > 1.
-
 ### Print Sentence / Document Embedding
 
 Sometimes it is useful to print out sentence / document embeddings from a trained model. To use that, run the following commands:
@@ -400,6 +274,3 @@ Please cite the [arXiv paper](https://arxiv.org/abs/1709.03856) if you use StarS
   year={2017}
 }
 ```
-## Contact
-* Facebook group: [StarSpace Users](https://www.facebook.com/groups/532005453808326)
-* emails: ledell@fb.com, jase@fb.com
